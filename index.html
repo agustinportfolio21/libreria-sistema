@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Librería — Panel de Gestión</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0F0F0F">
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://unpkg.com/idb@8/build/umd.js"></script>
+  <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/jspdf-autotable@3.5.25/dist/jspdf.plugin.autotable.js"></script>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <i class="fa-solid fa-book-open"></i>
+      <span>Librería</span>
+    </div>
+    <nav class="menu">
+      <a href="#" class="menu-item active" data-view="dashboard">
+        <i class="fa-solid fa-chart-line"></i><span>Dashboard</span>
+      </a>
+      <a href="#" class="menu-item" data-view="ventas">
+        <i class="fa-solid fa-cash-register"></i><span>Ventas</span>
+      </a>
+      <a href="#" class="menu-item" data-view="gastos">
+        <i class="fa-solid fa-receipt"></i><span>Gastos</span>
+      </a>
+      <a href="#" class="menu-item" data-view="deudas">
+        <i class="fa-solid fa-file-invoice-dollar"></i><span>Deudas</span>
+      </a>
+      <a href="#" class="menu-item" data-view="ahorros">
+        <i class="fa-solid fa-piggy-bank"></i><span>Ahorros</span>
+      </a>
+      <a href="#" class="menu-item" data-view="inventario">
+        <i class="fa-solid fa-boxes-stacked"></i><span>Inventario</span>
+      </a>
+      <a href="#" class="menu-item" data-view="caja">
+        <i class="fa-solid fa-cash-register"></i><span>Cierre de Caja</span>
+      </a>
+      <a href="#" class="menu-item" data-view="calendario">
+        <i class="fa-solid fa-calendar-days"></i><span>Calendario</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="btnExport" class="btn-outline">
+        <i class="fa-solid fa-download"></i> Exportar
+      </button>
+      <button id="btnImport" class="btn-outline">
+        <i class="fa-solid fa-upload"></i> Importar
+      </button>
+      <button id="btnTema" class="btn-outline">
+        <i class="fa-solid fa-moon"></i> Tema
+      </button>
+      <input type="file" id="fileImport" accept=".json" hidden>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section class="view" id="view-dashboard">
+      <header class="page-header">
+        <h1>Dashboard</h1>
+        <p id="fechaHoyTexto">Resumen general de tu librería</p>
+      </header>
+    
+      <!-- TARJETAS PRINCIPALES -->
+      <div class="stats-grid">
+        <div class="stat-card stat-cian">
+          <div class="stat-top">
+            <span class="stat-label">Ganado hoy</span>
+            <i class="fa-solid fa-sun"></i>
+          </div>
+          <span class="stat-value" id="totalHoy">$0</span>
+          <span class="stat-sub" id="subHoy">— ventas registradas</span>
+        </div>
+      
+        <div class="stat-card stat-magenta">
+          <div class="stat-top">
+            <span class="stat-label">Esta semana</span>
+            <i class="fa-solid fa-calendar-week"></i>
+          </div>
+          <span class="stat-value" id="totalSemana">$0</span>
+          <span class="stat-sub" id="subSemana">— ventas registradas</span>
+        </div>
+      
+        <div class="stat-card stat-amarillo">
+          <div class="stat-top">
+            <span class="stat-label">Este mes</span>
+            <i class="fa-solid fa-calendar"></i>
+          </div>
+          <span class="stat-value" id="totalMes">$0</span>
+          <span class="stat-sub" id="subMes">— ventas registradas</span>
+        </div>
+      
+        <div class="stat-card stat-dark">
+          <div class="stat-top">
+            <span class="stat-label">Neto del mes</span>
+            <i class="fa-solid fa-wallet"></i>
+          </div>
+          <span class="stat-value" id="netoMes">$0</span>
+          <span class="stat-sub" id="subNeto">Ventas − Gastos</span>
+        </div>
+      </div>
+    
+      <!-- TABLA RESUMEN DE PERÍODOS -->
+      <div class="dashboard-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-table-list"></i> Resumen por período</h2>
+          <span class="section-badge">Mes actual</span>
+        </div>
+      
+        <div class="table-wrap">
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>Período</th>
+                <th class="text-right">Ventas</th>
+                <th class="text-right">Gastos</th>
+                <th class="text-right">Neto</th>
+                <th class="text-right">Ahorro (10%)</th>
+                <th class="text-right">Deudas (20%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><i class="fa-solid fa-sun icon-cian"></i> Hoy</td>
+                <td class="text-right" id="tablaHoyVentas">$0</td>
+                <td class="text-right" id="tablaHoyGastos">$0</td>
+                <td class="text-right" id="tablaHoyNeto">$0</td>
+                <td class="text-right" id="tablaHoyAhorro">$0</td>
+                <td class="text-right" id="tablaHoyDeuda">$0</td>
+              </tr>
+              <tr>
+                <td><i class="fa-solid fa-calendar-week icon-magenta"></i> Esta semana</td>
+                <td class="text-right" id="tablaSemVentas">$0</td>
+                <td class="text-right" id="tablaSemGastos">$0</td>
+                <td class="text-right" id="tablaSemNeto">$0</td>
+                <td class="text-right" id="tablaSemAhorro">$0</td>
+                <td class="text-right" id="tablaSemDeuda">$0</td>
+              </tr>
+              <tr class="row-highlight">
+                <td><i class="fa-solid fa-calendar icon-amarillo"></i> Este mes</td>
+                <td class="text-right" id="tablaMesVentas">$0</td>
+                <td class="text-right" id="tablaMesGastos">$0</td>
+                <td class="text-right" id="tablaMesNeto">$0</td>
+                <td class="text-right" id="tablaMesAhorro">$0</td>
+                <td class="text-right" id="tablaMesDeuda">$0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    
+      <!-- FONDOS DEL MES -->
+      <div class="dashboard-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-vault"></i> Fondos del mes</h2>
+          <span class="section-badge">Automáticos</span>
+        </div>
+      
+        <div class="funds-grid">
+          <div class="fund-card">
+            <div class="fund-header">
+              <div class="fund-title">
+                <i class="fa-solid fa-piggy-bank icon-cian"></i>
+                <span>Ahorro (10%)</span>
+              </div>
+              <span class="fund-value" id="ahorroMes">$0</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill progress-cian" id="barraAhorro" style="width: 0%"></div>
+            </div>
+            <span class="fund-sub" id="subAhorro">Ahorro acumulado total: $0</span>
+          </div>
+        
+          <div class="fund-card">
+            <div class="fund-header">
+              <div class="fund-title">
+                <i class="fa-solid fa-file-invoice-dollar icon-magenta"></i>
+                <span>Deudas (20%)</span>
+              </div>
+              <span class="fund-value" id="deudaMes">$0</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill progress-magenta" id="barraDeuda" style="width: 0%"></div>
+            </div>
+            <span class="fund-sub" id="subDeuda">Saldo total de deudas: $0</span>
+          </div>
+        </div>
+      </div>
+    
+      <!-- ÚLTIMOS 7 DÍAS -->
+      <div class="dashboard-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-chart-simple"></i> Últimos 7 días</h2>
+          <span class="section-badge">Ventas diarias</span>
+        </div>
+        <div class="week-chart" id="weekChart"></div>
+      </div>
+    
+      <!-- GASTOS DEL MES -->
+      <div class="dashboard-section">
+        <div class="section-header">
+          <h2><i class="fa-solid fa-arrow-trend-down"></i> Gastos del mes</h2>
+          <span class="section-badge">Total: <strong id="gastosMes">$0</strong></span>
+        </div>
+        <div class="table-wrap">
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th class="text-right">Monto</th>
+                <th class="text-right">% del total</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyGastosResumen"></tbody>
+          </table>
+        </div>
+      </div>
+    
+    </section>
+
+    <!-- VENTAS -->
+    <section class="view hidden" id="view-ventas">
+      <header class="page-header">
+        <h1>Ventas</h1>
+        <p>Registrá cada venta que realizás durante el día</p>
+      </header>
+
+      <form class="form-row" id="formVenta">
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="ventaFecha" required>
+        </div>
+        <div class="field">
+          <label>Producto (opcional)</label>
+          <select id="ventaProducto"></select>
+        </div>
+        <div class="field">
+          <label>Descripción</label>
+          <input type="text" id="ventaDesc" placeholder="Ej: Cuaderno..." required>
+        </div>
+        <div class="field">
+          <label>Monto</label>
+          <input type="number" id="ventaMonto" step="0.01" min="0" placeholder="0.00" required>
+        </div>
+        <div class="field">
+          <label>Método</label>
+          <select id="ventaMetodo">
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="tarjeta">Tarjeta</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Agregar
+        </button>
+      </form>
+
+      <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr auto auto auto">
+        <div class="field">
+          <label>Desde</label>
+          <input type="date" id="filtroVentasDesde">
+        </div>
+        <div class="field">
+          <label>Hasta</label>
+          <input type="date" id="filtroVentasHasta">
+        </div>
+        <div class="field">
+          <label>Buscar</label>
+          <input type="text" id="filtroVentasTexto" placeholder="Descripción...">
+        </div>
+        <button type="button" class="btn-outline" onclick="renderVentas()">
+          <i class="fa-solid fa-filter"></i> Filtrar
+        </button>
+        <button type="button" class="btn-outline" onclick="exportarVentasCSV()">
+          <i class="fa-solid fa-file-csv"></i> CSV
+        </button>
+        <button type="button" class="btn-outline" onclick="exportarVentasPDF()">
+          <i class="fa-solid fa-file-pdf"></i> PDF
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Fecha</th><th>Descripción</th><th>Método</th><th>Monto</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="tbodyVentas"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="total-label">Total</td>
+              <td id="totalVentasTabla" class="total-value">$0</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- GASTOS -->
+    <section class="view hidden" id="view-gastos">
+      <header class="page-header">
+        <h1>Gastos</h1>
+        <p>Registrá cada gasto para tener control total</p>
+      </header>
+
+      <form class="form-row" id="formGasto">
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="gastoFecha" required>
+        </div>
+        <div class="field">
+          <label>Descripción</label>
+          <input type="text" id="gastoDesc" placeholder="Ej: Alquiler, luz..." required>
+        </div>
+        <div class="field">
+          <label>Monto</label>
+          <input type="number" id="gastoMonto" step="0.01" min="0" placeholder="0.00" required>
+        </div>
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Agregar gasto
+        </button>
+      </form>
+
+      <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr auto auto auto">
+        <div class="field">
+          <label>Desde</label>
+          <input type="date" id="filtroGastosDesde">
+        </div>
+        <div class="field">
+          <label>Hasta</label>
+          <input type="date" id="filtroGastosHasta">
+        </div>
+        <div class="field">
+          <label>Buscar</label>
+          <input type="text" id="filtroGastosTexto" placeholder="Descripción...">
+        </div>
+        <button type="button" class="btn-outline" onclick="renderGastos()">
+          <i class="fa-solid fa-filter"></i> Filtrar
+        </button>
+        <button type="button" class="btn-outline" onclick="exportarGastosCSV()">
+          <i class="fa-solid fa-file-csv"></i> CSV
+        </button>
+        <button type="button" class="btn-outline" onclick="exportarGastosPDF()">
+          <i class="fa-solid fa-file-pdf"></i> PDF
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Fecha</th><th>Descripción</th><th>Monto</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="tbodyGastos"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" class="total-label">Total</td>
+              <td id="totalGastosTabla" class="total-value">$0</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+
+    <!-- DEUDAS -->
+    <section class="view hidden" id="view-deudas">
+      <header class="page-header">
+        <h1>Deudas</h1>
+        <p>Se destina automáticamente el 20% de las ganancias</p>
+      </header>
+
+      <div class="banner banner-magenta">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Fondo generado este mes por el 20% de las ventas: <strong id="fondoDeuda">$0</strong></span>
+      </div>
+
+      <form class="form-row" id="formDeuda">
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="deudaFecha" required>
+        </div>
+        <div class="field">
+          <label>Acreedor</label>
+          <input type="text" id="deudaAcreedor" placeholder="Ej: Proveedor X" required>
+        </div>
+        <div class="field">
+          <label>Monto total</label>
+          <input type="number" id="deudaMonto" step="0.01" min="0" required>
+        </div>
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Agregar deuda
+        </button>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Fecha</th><th>Acreedor</th><th>Monto</th><th>Pagado</th><th>Saldo</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="tbodyDeudas"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- AHORROS -->
+    <section class="view hidden" id="view-ahorros">
+      <header class="page-header">
+        <h1>Ahorros</h1>
+        <p>10% de las ganancias se guarda automáticamente</p>
+      </header>
+      <div class="banner banner-cian">
+        <i class="fa-solid fa-piggy-bank"></i>
+        <span>Ahorro generado este mes: <strong id="fondoAhorro">$0</strong></span>
+      </div>
+
+      <div class="cards">
+        <div class="card card-cian">
+          <div class="card-icon"><i class="fa-solid fa-vault"></i></div>
+          <div class="card-info">
+            <span class="card-label">Ahorro acumulado total</span>
+            <span class="card-value" id="ahorroTotal">$0</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INVENTARIO -->
+    <section class="view hidden" id="view-inventario">
+      <header class="page-header">
+        <h1>Inventario</h1>
+        <p>Control de stock y alertas</p>
+      </header>
+
+      <form class="form-row" id="formProducto">
+        <div class="field">
+          <label>Nombre</label>
+          <input type="text" id="prodNombre" required>
+        </div>
+        <div class="field">
+          <label>Precio costo</label>
+          <input type="number" id="prodCosto" step="0.01" min="0" required>
+        </div>
+        <div class="field">
+          <label>Precio venta</label>
+          <input type="number" id="prodPrecio" step="0.01" min="0" required>
+        </div>
+        <div class="field">
+          <label>Stock</label>
+          <input type="number" id="prodStock" min="0" required>
+        </div>
+        <div class="field">
+          <label>Stock mínimo</label>
+          <input type="number" id="prodMin" min="0" value="5">
+        </div>
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Agregar
+        </button>
+      </form>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Producto</th><th>Costo</th><th>Venta</th><th>Stock</th><th>Estado</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="tbodyInventario"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CAJA -->
+    <section class="view hidden" id="view-caja">
+      <header class="page-header">
+        <h1>Cierre de Caja</h1>
+        <p>Control diario de efectivo</p>
+      </header>
+
+      <div class="cards">
+        <div class="card card-cian">
+          <div class="card-icon"><i class="fa-solid fa-coins"></i></div>
+          <div class="card-info">
+            <span class="card-label">Efectivo inicial</span>
+            <span class="card-value" id="cajaInicial">$0</span>
+          </div>
+        </div>
+        <div class="card card-amarillo">
+          <div class="card-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+          <div class="card-info">
+            <span class="card-label">Ventas en efectivo del día</span>
+            <span class="card-value" id="cajaVentas">$0</span>
+          </div>
+        </div>
+        <div class="card card-dark">
+          <div class="card-icon"><i class="fa-solid fa-calculator"></i></div>
+          <div class="card-info">
+            <span class="card-label">Esperado en caja</span>
+            <span class="card-value" id="cajaEsperado">$0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-top:24px;grid-template-columns: 1fr 1fr auto">
+        <div class="field">
+          <label>Efectivo inicial</label>
+          <input type="number" id="inputInicial" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div class="field">
+          <label>Efectivo contado (real)</label>
+          <input type="number" id="inputReal" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <button class="btn-primary" id="btnCerrarCaja">
+          <i class="fa-solid fa-lock"></i> Registrar cierre
+        </button>
+      </div>
+
+      <div class="banner banner-cian" id="resultadoCaja" style="display:none">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="textoResultado"></span>
+      </div>
+
+      <div class="table-wrap" style="margin-top:24px">
+        <table>
+          <thead>
+            <tr><th>Fecha</th><th>Inicial</th><th>Ventas efectivo</th><th>Esperado</th><th>Real</th><th>Diferencia</th></tr>
+          </thead>
+          <tbody id="tbodyCaja"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CALENDARIO -->
+    <section class="view hidden" id="view-calendario">
+      <header class="page-header">
+        <h1>Calendario</h1>
+        <p>Vista mensual de ventas y gastos</p>
+      </header>
+
+      <div class="calendar-header">
+        <button id="prevMonth" class="btn-icon"><i class="fa-solid fa-chevron-left"></i></button>
+        <h2 id="monthLabel"></h2>
+        <button id="nextMonth" class="btn-icon"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+
+      <div class="calendar" id="calendar"></div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
