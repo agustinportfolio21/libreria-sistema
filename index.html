@@ -9,7 +9,8 @@
   <link rel="stylesheet" href="styles.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="https://unpkg.com/idb@8/build/umd.js"></script>
+
+  <!-- Librerías externas (se cargan primero) -->
   <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://unpkg.com/jspdf-autotable@3.5.25/dist/jspdf.plugin.autotable.js"></script>
 </head>
@@ -70,8 +71,7 @@
         <h1>Dashboard</h1>
         <p id="fechaHoyTexto">Resumen general de tu librería</p>
       </header>
-    
-      <!-- TARJETAS PRINCIPALES -->
+
       <div class="stats-grid">
         <div class="stat-card stat-cian">
           <div class="stat-top">
@@ -81,7 +81,6 @@
           <span class="stat-value" id="totalHoy">$0</span>
           <span class="stat-sub" id="subHoy">— ventas registradas</span>
         </div>
-      
         <div class="stat-card stat-magenta">
           <div class="stat-top">
             <span class="stat-label">Esta semana</span>
@@ -90,7 +89,6 @@
           <span class="stat-value" id="totalSemana">$0</span>
           <span class="stat-sub" id="subSemana">— ventas registradas</span>
         </div>
-      
         <div class="stat-card stat-amarillo">
           <div class="stat-top">
             <span class="stat-label">Este mes</span>
@@ -99,7 +97,6 @@
           <span class="stat-value" id="totalMes">$0</span>
           <span class="stat-sub" id="subMes">— ventas registradas</span>
         </div>
-      
         <div class="stat-card stat-dark">
           <div class="stat-top">
             <span class="stat-label">Neto del mes</span>
@@ -109,14 +106,12 @@
           <span class="stat-sub" id="subNeto">Ventas − Gastos</span>
         </div>
       </div>
-    
-      <!-- TABLA RESUMEN DE PERÍODOS -->
+
       <div class="dashboard-section">
         <div class="section-header">
           <h2><i class="fa-solid fa-table-list"></i> Resumen por período</h2>
           <span class="section-badge">Mes actual</span>
         </div>
-      
         <div class="table-wrap">
           <table class="summary-table">
             <thead>
@@ -158,14 +153,12 @@
           </table>
         </div>
       </div>
-    
-      <!-- FONDOS DEL MES -->
+
       <div class="dashboard-section">
         <div class="section-header">
           <h2><i class="fa-solid fa-vault"></i> Fondos del mes</h2>
           <span class="section-badge">Automáticos</span>
         </div>
-      
         <div class="funds-grid">
           <div class="fund-card">
             <div class="fund-header">
@@ -180,7 +173,6 @@
             </div>
             <span class="fund-sub" id="subAhorro">Ahorro acumulado total: $0</span>
           </div>
-        
           <div class="fund-card">
             <div class="fund-header">
               <div class="fund-title">
@@ -196,8 +188,7 @@
           </div>
         </div>
       </div>
-    
-      <!-- ÚLTIMOS 7 DÍAS -->
+
       <div class="dashboard-section">
         <div class="section-header">
           <h2><i class="fa-solid fa-chart-simple"></i> Últimos 7 días</h2>
@@ -205,8 +196,7 @@
         </div>
         <div class="week-chart" id="weekChart"></div>
       </div>
-    
-      <!-- GASTOS DEL MES -->
+
       <div class="dashboard-section">
         <div class="section-header">
           <h2><i class="fa-solid fa-arrow-trend-down"></i> Gastos del mes</h2>
@@ -225,7 +215,6 @@
           </table>
         </div>
       </div>
-    
     </section>
 
     <!-- VENTAS -->
@@ -556,6 +545,8 @@
 
   </main>
 
+  <!-- Scripts propios: ORDEN IMPORTANTE -->
+  <script src="db.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
