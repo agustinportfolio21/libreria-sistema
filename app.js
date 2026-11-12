@@ -355,8 +355,8 @@ function renderDashboard() {
   const fechaTexto = hoy.toLocaleDateString('es-AR', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
-  document.getElementById('fechaHoyTexto').textContent =
-    fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1);
+  const fechaEl = document.getElementById('fechaHoyTexto');
+  if (fechaEl) fechaEl.textContent = fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1);
 
   // --- Tabla resumen por período ---
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = fmt(val); };
@@ -383,23 +383,36 @@ function renderDashboard() {
   const ahorroTotal = state.ventas.reduce((s, v) => s + v.monto * 0.10, 0);
   const deudasTotal = state.deudas.reduce((s, d) => s + (d.monto - (d.pagado || 0)), 0);
 
-  document.getElementById('ahorroMes').textContent = fmt(ahorroMes);
-  document.getElementById('deudaMes').textContent = fmt(deudaMes);
-  document.getElementById('fondoAhorro').textContent = fmt(ahorroMes);
-  document.getElementById('fondoDeuda').textContent = fmt(deudaMes);
-  document.getElementById('ahorroTotal').textContent = fmt(ahorroTotal);
-  document.getElementById('gastosMes').textContent = fmt(gastosMes);
+  const elAhorroMes = document.getElementById('ahorroMes');
+  const elDeudaMes = document.getElementById('deudaMes');
+  const elFondoAhorro = document.getElementById('fondoAhorro');
+  const elFondoDeuda = document.getElementById('fondoDeuda');
+  const elAhorroTotal = document.getElementById('ahorroTotal');
+  const elGastosMes = document.getElementById('gastosMes');
+  const elSubAhorro = document.getElementById('subAhorro');
+  const elSubDeuda = document.getElementById('subDeuda');
 
-  document.getElementById('subAhorro').textContent = `Ahorro acumulado total: ${fmt(ahorroTotal)}`;
-  document.getElementById('subDeuda').textContent = `Saldo total de deudas: ${fmt(deudasTotal)}`;
+  if (elAhorroMes) elAhorroMes.textContent = fmt(ahorroMes);
+  if (elDeudaMes) elDeudaMes.textContent = fmt(deudaMes);
+  if (elFondoAhorro) elFondoAhorro.textContent = fmt(ahorroMes);
+  if (elFondoDeuda) elFondoDeuda.textContent = fmt(deudaMes);
+  if (elAhorroTotal) elAhorroTotal.textContent = fmt(ahorroTotal);
+  if (elGastosMes) elGastosMes.textContent = fmt(gastosMes);
 
-  // Barra de ahorro: cuánto del ahorro del mes ya está acumulado (proporción de ventasMes)
-  const pctAhorro = ventasMes > 0 ? Math.min((ahorroMes / (ventasMes || 1)) * 100, 100) : 0;
-  document.getElementById('barraAhorro').style.width = pctAhorro + '%';
+  if (elSubAhorro) elSubAhorro.textContent = `Ahorro acumulado total: ${fmt(ahorroTotal)}`;
+  if (elSubDeuda) elSubDeuda.textContent = `Saldo total de deudas: ${fmt(deudasTotal)}`;
 
-  // Barra de deuda: qué % del saldo total cubre el fondo del mes
-  const pctDeuda = deudasTotal > 0 ? Math.min((deudaMes / deudasTotal) * 100, 100) : 0;
-  document.getElementById('barraDeuda').style.width = pctDeuda + '%';
+  const barraAhorro = document.getElementById('barraAhorro');
+  if (barraAhorro) {
+    const pctAhorro = ventasMes > 0 ? Math.min((ahorroMes / (ventasMes || 1)) * 100, 100) : 0;
+    barraAhorro.style.width = pctAhorro + '%';
+  }
+
+  const barraDeuda = document.getElementById('barraDeuda');
+  if (barraDeuda) {
+    const pctDeuda = deudasTotal > 0 ? Math.min((deudaMes / deudasTotal) * 100, 100) : 0;
+    barraDeuda.style.width = pctDeuda + '%';
+  }
 
   // --- Gráfico de últimos 7 días ---
   renderWeekChart(hoy);
@@ -435,7 +448,7 @@ function renderWeekChart(hoy) {
 
     contenedor.innerHTML += `
       <div class="week-day ${esHoy ? 'today' : ''}">
-        <span class="week-day-value">${valor > 0 ? fmt(valor).replace('$', '$') : ''}</span>
+        <span class="week-day-value">${valor > 0 ? fmt(valor) : ''}</span>
         <div class="week-day-bar" style="height:${Math.max(altura, 4)}px"></div>
         <span class="week-day-label">${label}</span>
       </div>`;
@@ -447,7 +460,6 @@ function renderGastosResumen(gastosArr, total) {
   if (!tbody) return;
   tbody.innerHTML = '';
 
-  // Agrupar por descripción
   const agrupado = {};
   gastosArr.forEach(g => {
     const key = g.desc.toLowerCase();
@@ -725,7 +737,7 @@ document.getElementById('btnTema').addEventListener('click', () => {
 // ============ PWA ============
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
 }
 
